@@ -2,9 +2,9 @@
 #include <opencv2/opencv.hpp>
 #include <opencv2/aruco.hpp>
 
-#define MARKER_LENGTH 20
+#define MARKER_LENGTH 0.026
 #define AXIS_LENGTH MARKER_LENGTH*0.75f
-#define REFERENCE_MARKER_ID 10
+#define REFERENCE_MARKER_ID 22
 
 struct cameraParameters{
   int image_width;
@@ -71,15 +71,18 @@ std::vector<int> sortVector(
 //    - y origin antiparallel to y camera
 //    - z origin == -z camera
 // R0vec and t0 can be easily autodetected from the pose of the reference marker
-cv::Mat R0vec = (cv::Mat_<double>(3,1) << 0, 0, CV_PI/2);
-cv::Mat t0 = (cv::Mat_<double>(3,1) << 140, 60, 0);
+cv::Mat R0vec = (cv::Mat_<double>(3,1) << 0, 0, 0);
+cv::Mat t0 = (cv::Mat_<double>(3,1) << 0.65, -0.33, 0);
 // -----------------------------------------------------------------------------
 
+cv::Mat tinv_cv, Rinvvec_cv;
+bool recorded_reference_marker_pose = false;
+   
 int main(int argc, char** argv) {
 
     // camera parameters
     cameraParameters camParams;
-    readCameraParameters("../config/camera_parameters.yaml", camParams);
+    readCameraParameters("../config/camera_parameters_lifecam1.yaml", camParams);
     cv::Mat camMatrix = camParams.camera_matrix;
     cv::Mat camDistCoeffs = camParams.distortion_coefficients;
     int image_width = camParams.image_width;
@@ -104,9 +107,9 @@ int main(int argc, char** argv) {
     cam.open(1);
     cam.set(CV_CAP_PROP_FRAME_WIDTH, image_width);
     cam.set(CV_CAP_PROP_FRAME_HEIGHT, image_height);
-    cam.set(cv::CAP_PROP_AUTOFOCUS, true);
-    cam.set(cv::CAP_PROP_AUTO_EXPOSURE, true);
-    cam.set(cv::CAP_PROP_BRIGHTNESS, 0);
+    //cam.set(cv::CAP_PROP_AUTOFOCUS, true);
+    //cam.set(cv::CAP_PROP_AUTO_EXPOSURE, true);
+    //cam.set(cv::CAP_PROP_BRIGHTNESS, -100);
     //std::cout << cam.get(cv::CAP_PROP_AUTOFOCUS);
 
     while (true) {
@@ -161,16 +164,29 @@ bool calculatePoseWrtReferenceMarker(
     tvecs_wrt_ref.clear();
 
     for (int i = 0; i < ids.size(); i++) {
-      cv::Mat R_cv;
-      cv::Rodrigues(rvecs[idReferenceMarker], R_cv);
-      cv::Mat t_cv;
-      t_cv = vec3dToMat(tvecs[idReferenceMarker]);
-      cv::Mat Rinv_cv;
-      cv::transpose(R_cv, Rinv_cv);
-      cv::Mat tinv_cv;
-      tinv_cv = -Rinv_cv*t_cv;
-      cv::Mat Rinvvec_cv;
-      cv::Rodrigues(Rinv_cv, Rinvvec_cv);
+      if (!recorded_reference_marker_pose) {
+          cv::Mat R_cv;
+          cv::Rodrigues(rvecs[idReferenceMarker], R_cv);
+          cv::Mat t_cv;
+          t_cv = vec3dToMat(tvecs[idReferenceMarker]);
+          cv::Mat Rinv_cv;
+          cv::transpose(R_cv, Rinv_cv);
+          //cv::Mat tinv_cv;
+          tinv_cv = -Rinv_cv*t_cv;
+          //cv::Mat Rinvvec_cv;
+          cv::Rodrigues(Rinv_cv, Rinvvec_cv);    
+          recorded_reference_marker_pose = true;
+      }
+      //cv::Mat R_cv;
+      //cv::Rodrigues(rvecs[idReferenceMarker], R_cv);
+      //cv::Mat t_cv;
+      //t_cv = vec3dToMat(tvecs[idReferenceMarker]);
+      //cv::Mat Rinv_cv;
+      //cv::transpose(R_cv, Rinv_cv);
+      //cv::Mat tinv_cv;
+      //tinv_cv = -Rinv_cv*t_cv;
+      //cv::Mat Rinvvec_cv;
+      //cv::Rodrigues(Rinv_cv, Rinvvec_cv);
 
       cv::Mat rvec_ref, tvec_ref;
       cv::composeRT(rvecs[i], tvecs[i], Rinvvec_cv, tinv_cv, rvec_ref, tvec_ref);
