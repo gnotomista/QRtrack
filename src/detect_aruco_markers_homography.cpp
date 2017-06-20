@@ -22,7 +22,7 @@ bool find_homography_to_reference_markers_image_plane(
   Ptr<aruco::Dictionary> dictionary,
   Ptr<aruco::DetectorParameters> detectorParams,
   const vector< int > REFERENCE_MARKER_IDS,
-  const vector< Point2f > reference_markers_image_plane_WORLD_PLANE,
+  const vector< Point2f > REFERENCE_MARKERS_WORLD_PLANE,
   Mat& H);
 static bool read_detector_parameters(
   std::string filename,
@@ -59,13 +59,12 @@ Point3f get_robot_pose(
 
 // main
 int main(int argc, char** argv) {
-  const vector< Point2f > reference_markers_image_plane_WORLD_PLANE = {
+  const vector< Point2f > REFERENCE_MARKERS_WORLD_PLANE = {
     Point2f(0,0),
     Point2f(1,0),
     Point2f(1,1),
     Point2f(0,1)};
   const vector< int > REFERENCE_MARKER_IDS = {0, 1, 2, 3};
-  vector< Point2f > reference_markers_image_plane_image_plane;
 
   // camera parameters
   cameraParameters camParams;
@@ -89,7 +88,7 @@ int main(int argc, char** argv) {
   std::vector< int > ids;
 
   Mat H;
-  find_homography_to_reference_markers_image_plane(cam, dictionary, detectorParams, REFERENCE_MARKER_IDS, reference_markers_image_plane_WORLD_PLANE, H);
+  find_homography_to_reference_markers_image_plane(cam, dictionary, detectorParams, REFERENCE_MARKER_IDS, REFERENCE_MARKERS_WORLD_PLANE, H);
 
   while(waitKey(30) != 27){
 
@@ -112,7 +111,7 @@ bool find_homography_to_reference_markers_image_plane(
   Ptr<aruco::Dictionary> dictionary,
   Ptr<aruco::DetectorParameters> detectorParams,
   const vector< int > REFERENCE_MARKER_IDS,
-  const vector< Point2f > reference_markers_image_plane_WORLD_PLANE,
+  const vector< Point2f > REFERENCE_MARKERS_WORLD_PLANE,
   Mat& H) {
 
   Mat img;
@@ -147,7 +146,7 @@ bool find_homography_to_reference_markers_image_plane(
               0.25*(reference_markers_image_plane[i][0].y+reference_markers_image_plane[i][1].y+reference_markers_image_plane[i][2].y+reference_markers_image_plane[i][3].y)
             )
           );
-          world_points.push_back(reference_markers_image_plane_WORLD_PLANE[i]);
+          world_points.push_back(REFERENCE_MARKERS_WORLD_PLANE[i]);
         }
         cout << "Computing homography between the image point:\n" << image_points << "\nand the world points:\n" << world_points << endl << "...";
 
