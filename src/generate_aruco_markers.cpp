@@ -9,7 +9,7 @@ int main(int argc, char** argv )
     cv::Mat marker_image;
     cv::Ptr<cv::aruco::Dictionary> dictionary = cv::aruco::getPredefinedDictionary(cv::aruco::DICT_4X4_50);
     
-    for (int i = 0; i<25; i++) {
+    for (int i = 25; i<50; i++) {
         cv::aruco::drawMarker(dictionary, i, 75, marker_image, 1);
         
         oss.str("");
